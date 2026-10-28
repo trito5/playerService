@@ -1,0 +1,4 @@
+CREATE TABLE players (
+    player_id UUID PRIMARY KEY NOT NULL,
+    activity TIMESTAMP WITH TIME ZONE NOT NULL
+);
