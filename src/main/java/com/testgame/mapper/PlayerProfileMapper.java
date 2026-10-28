@@ -5,7 +5,7 @@ import com.testgame.client.dto.PlayerProfileResponse;
 import java.util.UUID;
 import lombok.NonNull;
 
-public class PlayerProfileMapper { //TODO change name?
+public class PlayerProfileMapper {
 
     public static PlayerName toPlayerName(UUID playerId, String name) {
         return PlayerName.builder()
