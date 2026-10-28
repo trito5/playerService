@@ -21,7 +21,6 @@ import static com.testgame.mapper.BattleMapper.toCompletedBattle;
 import static com.testgame.util.DateTimeUtil.startOfDay;
 import static com.testgame.util.DateTimeUtil.startOfNextDay;
 import static com.testgame.util.DateTimeUtil.toUtcDate;
-import static com.testgame.util.DateTimeUtil.todayUtc;
 import static io.micronaut.http.HttpStatus.CONFLICT;
 import static io.micronaut.http.HttpStatus.NOT_FOUND;
 
@@ -35,15 +34,14 @@ public class BattleService {
     private final LeaderboardService leaderboardService;
     private final BattleStartService battleStartService;
 
-    public Flux<LevelStartCount> countStartsByLevelToday(UUID playerId) {
-        var today = todayUtc();
-        return getStartedBattlesForDay(playerId, today)
+    public Flux<LevelStartCount> countStartsByLevel(UUID playerId, LocalDate day) {
+        return getStartedBattlesForDay(playerId, day)
             .collect(HashMap<UUID, Long>::new, this::countLevelStart)
             .flatMapIterable(BattleMapper::toLevelStartCounts);
     }
 
-    public Mono<Integer> getScoreForToday(UUID playerId) {
-        return getDailyScore(playerId, todayUtc())
+    public Mono<Integer> getScoreForDay(UUID playerId, LocalDate day) {
+        return getDailyScore(playerId, day)
             .map(PlayerDailyScore::score);
     }
 
