@@ -57,9 +57,9 @@ public class CompleteBattleControllerTests extends AbstractPlayerApiTests {
     @Test
     @DisplayName("Multiple completions publish the absolute daily total across levels without duplicating the player")
     public void testPost_battles_complete_daily_total_ok() {
-        var first = apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0)).battleId();
+        var first = apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst()).battleId();
         var second = apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(1)).battleId();
-        var third = apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0)).battleId();
+        var third = apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst()).battleId();
 
         assertEquals(9, apiClient.completeBattle(playerId, first, 25).position());
         assertEquals(6, apiClient.completeBattle(playerId, second, 30).position());
@@ -89,9 +89,9 @@ public class CompleteBattleControllerTests extends AbstractPlayerApiTests {
         var midnight = Instant.now().atZone(ZoneOffset.UTC).toLocalDate()
             .atStartOfDay(ZoneOffset.UTC).toInstant();
         saveBattles(List.of(
-            createBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0),
+            createBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst(),
                 midnight.minusSeconds(120), midnight.minusSeconds(60), 500),
-            createBattle(otherPlayerId, TestDataGenerator.LEVEL_IDS.get(0),
+            createBattle(otherPlayerId, TestDataGenerator.LEVEL_IDS.getFirst(),
                 midnight, midnight, 700)));
         var battleId = apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(1)).battleId();
 

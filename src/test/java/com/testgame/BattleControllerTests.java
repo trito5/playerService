@@ -38,7 +38,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
 
         var before = Instant.now();
 
-        var response = apiClient.startBattleResponse(playerId, TestDataGenerator.LEVEL_IDS.get(0));
+        var response = apiClient.startBattleResponse(playerId, TestDataGenerator.LEVEL_IDS.getFirst());
         var updatedPlayer = playerRepository.findById(playerId).blockOptional().orElseThrow();
 
         assertNotNull(response.getBody().orElseThrow().battleId());
@@ -52,7 +52,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     public void testPost_battles_unique_ids_created() {
 
         var battleIds = IntStream.range(0, 3)
-            .mapToObj(index -> apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0)).battleId())
+            .mapToObj(index -> apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst()).battleId())
             .toList();
 
         assertEquals(3, battleIds.stream().distinct().count());
@@ -63,11 +63,11 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     @DisplayName("A player cannot start another battle after reaching the configured daily limit")
     public void testPost_battles_daily_limit_conflict() {
         for (int attempt = 0; attempt < 3; attempt++) {
-            apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0));
+            apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst());
         }
         var playerBeforeRejection = playerRepository.findById(playerId).blockOptional().orElseThrow();
 
-        assertHttpStatus(() -> apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0)), CONFLICT);
+        assertHttpStatus(() -> apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst()), CONFLICT);
 
         assertEquals(playerBeforeRejection, playerRepository.findById(playerId).blockOptional().orElseThrow());
         assertEquals(3, apiClient.getPlayer(playerId).levels().getFirst().startCount());
@@ -100,7 +100,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     @Test
     @DisplayName("Concurrent starts enforce a separate daily limit for each level")
     public void testPost_battles_concurrent_level_limits_conflict() {
-        var firstLevel = TestDataGenerator.LEVEL_IDS.get(0);
+        var firstLevel = TestDataGenerator.LEVEL_IDS.getFirst();
         var secondLevel = TestDataGenerator.LEVEL_IDS.get(1);
 
         assertConcurrentStarts(List.of(
@@ -117,11 +117,11 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     public void testPost_battles_player_and_level_limits_created() {
 
         for (int attempt = 0; attempt < 3; attempt++) {
-            apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0));
+            apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst());
         }
 
         apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(1));
-        apiClient.startBattle(otherPlayerId, TestDataGenerator.LEVEL_IDS.get(0));
+        apiClient.startBattle(otherPlayerId, TestDataGenerator.LEVEL_IDS.getFirst());
 
         assertEquals(List.of(3, 1, 0),
             apiClient.getPlayer(playerId).levels().stream().map(LevelDto::startCount).toList());
@@ -134,7 +134,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     public void testPost_battles_previous_day_created() {
         saveBattles(createPreviousDayBattles(playerId, 3));
 
-        apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0));
+        apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst());
 
         assertEquals(1, apiClient.getPlayer(playerId).levels().getFirst().startCount());
     }
@@ -143,7 +143,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     @DisplayName("Completed battles still consume an attempt")
     public void testPost_battles_completed_attempts_conflict() {
         saveBattles(createCompletedBattlesForToday(playerId, 3));
-        assertHttpStatus(() -> apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.get(0)), CONFLICT);
+        assertHttpStatus(() -> apiClient.startBattle(playerId, TestDataGenerator.LEVEL_IDS.getFirst()), CONFLICT);
         assertEquals(3, apiClient.getPlayer(playerId).levels().getFirst().startCount());
     }
 
@@ -152,7 +152,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     public void testPost_battles_missing_player_created() {
         var before = Instant.now();
 
-        var response = apiClient.startBattleResponse(playerId, TestDataGenerator.LEVEL_IDS.get(0));
+        var response = apiClient.startBattleResponse(playerId, TestDataGenerator.LEVEL_IDS.getFirst());
         var player = playerRepository.findById(playerId).blockOptional().orElseThrow();
         var battle = battleRepository.findById(response.getBody().orElseThrow().battleId())
             .blockOptional().orElseThrow();
@@ -182,7 +182,7 @@ public class BattleControllerTests extends AbstractPlayerApiTests {
     @DisplayName("Malformed player or level IDs return bad request")
     public void testPost_battles_invalid_ids_bad_request() {
         assertHttpStatus(() -> apiClient.startBattleResponse(
-            "not-a-uuid", TestDataGenerator.LEVEL_IDS.get(0).toString()), BAD_REQUEST);
+            "not-a-uuid", TestDataGenerator.LEVEL_IDS.getFirst().toString()), BAD_REQUEST);
         assertHttpStatus(() -> apiClient.startBattleResponse(playerId.toString(), "not-a-uuid"), BAD_REQUEST);
     }
 
